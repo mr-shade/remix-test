@@ -4,6 +4,7 @@ import { useLoaderData, useActionData } from "@remix-run/react";
 import { ZodError } from "zod";
 import { getNoteById, updateNote } from "~/db/notes";
 import { UpdateNoteSchema } from "~/db/schema";
+import { initializeDb } from "~/db/client";
 import NoteForm from "~/components/NoteForm";
 
 export const meta: MetaFunction = () => {
@@ -13,44 +14,50 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, context }: LoaderFunctionArgs) {
   const noteId = params.id;
-  
+
   if (!noteId) {
     throw new Response("Note ID is required", { status: 400 });
   }
-  
-  const note = await getNoteById(noteId);
-  
+
+  // Initialize the database
+  const db = await initializeDb(context.env);
+
+  const note = await getNoteById(noteId, db);
+
   if (!note) {
     throw new Response("Note not found", { status: 404 });
   }
-  
+
   return json({ note });
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params, context }: ActionFunctionArgs) {
   const noteId = params.id;
-  
+
   if (!noteId) {
     return json({ errors: [{ message: "Note ID is required" }] }, { status: 400 });
   }
-  
+
   const formData = await request.formData();
   const title = formData.get("title") as string;
   const content = formData.get("content") as string;
-  
+
   try {
+    // Initialize the database
+    const db = await initializeDb(context.env);
+
     // Validate the input data
     const validatedData = UpdateNoteSchema.parse({ id: noteId, title, content });
-    
+
     // Update the note
-    const updatedNote = await updateNote(noteId, validatedData);
-    
+    const updatedNote = await updateNote(noteId, validatedData, db);
+
     if (!updatedNote) {
       return json({ errors: [{ message: "Note not found" }] }, { status: 404 });
     }
-    
+
     // Redirect to the home page
     return redirect("/");
   } catch (error) {
@@ -58,7 +65,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       // Return validation errors
       return json({ errors: error.errors }, { status: 400 });
     }
-    
+
     // Return a generic error
     return json({ errors: [{ message: "Failed to update note" }] }, { status: 500 });
   }
@@ -67,11 +74,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function EditNote() {
   const { note } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
-  
+
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit Note</h1>
-      
+
       {actionData?.errors && (
         <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
           <div className="flex">
@@ -90,7 +97,7 @@ export default function EditNote() {
           </div>
         </div>
       )}
-      
+
       <NoteForm note={note} formAction={`/notes/${note.id}/edit`} />
     </div>
   );

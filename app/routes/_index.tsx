@@ -15,10 +15,10 @@ export const meta: MetaFunction = () => {
 
 export async function loader({ context }: LoaderFunctionArgs) {
   // Initialize the database if it doesn't exist
-  await initializeDb();
+  const db = await initializeDb(context.env);
 
   // Get all notes
-  const notes = await getAllNotes();
+  const notes = await getAllNotes(db);
 
   return json({ notes });
 }
