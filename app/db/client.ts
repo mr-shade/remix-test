@@ -4,7 +4,7 @@ import { createClient } from '@libsql/client';
 export function getDb(env?: any) {
   // Get environment variables from context or from wrangler.toml vars
   const url = env?.TURSO_DB_URL || 'libsql://remix-test-sh20raj.aws-ap-south-1.turso.io';
-  const authToken = env?.TURSO_DB_AUTH_TOKEN;
+  const authToken = env?.TURSO_DB_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NDY4NDYzNDYsImlkIjoiNWFlOTBmZTItOGMwOC00MGI1LTkwZTEtNDQwYjBhNGI3MTczIiwicmlkIjoiMjc5ODUzZWUtZThhZi00MjdjLWFmZjAtZWQ0ZTQzMWE0ZWFlIn0.D9V5B_T-k8GxtTTT-v59l4mZVKRtawYbEQUGtU_zO3isqERhGUIahK65b-pgYv368jm99yMfb6F9vTQq6AcZCg';
 
   return createClient({
     url,
