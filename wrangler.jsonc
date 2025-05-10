@@ -9,6 +9,9 @@
 	"pages_build_output_dir": "./build/client",
 	"observability": {
 		"enabled": true
+	},
+	"vars": {
+		"TURSO_DB_URL": "libsql://remix-test-sh20raj.aws-ap-south-1.turso.io"
 	}
 	/**
 	 * Smart Placement
